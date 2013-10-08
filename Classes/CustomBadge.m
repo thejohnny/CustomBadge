@@ -85,7 +85,9 @@
 {
 	CGSize retValue;
 	CGFloat rectWidth, rectHeight;
-	CGSize stringSize = [badgeString sizeWithFont:[UIFont boldSystemFontOfSize:12]];
+    NSDictionary *fontAttributes = [NSDictionary dictionaryWithObjectsAndKeys:[UIFont boldSystemFontOfSize:12], NSFontAttributeName, nil];
+    CGSize stringSize = [badgeString sizeWithAttributes:fontAttributes];
+    
 	CGFloat flexSpace;
 	if ([badgeString length]>=2) {
 		flexSpace = [badgeString length];
@@ -110,7 +112,13 @@
 // Creates a Badge with a given Text, Text Color, Inset Color, Frame (YES/NO) and Frame Color 
 + (CustomBadge*) customBadgeWithString:(NSString *)badgeString withStringColor:(UIColor*)stringColor withInsetColor:(UIColor*)insetColor withBadgeFrame:(BOOL)badgeFrameYesNo withBadgeFrameColor:(UIColor*)frameColor withScale:(CGFloat)scale withShining:(BOOL)shining
 {
-	return [[[self alloc] initWithString:badgeString withStringColor:stringColor withInsetColor:insetColor withBadgeFrame:badgeFrameYesNo withBadgeFrameColor:frameColor withScale:scale withShining:shining] autorelease];
+	return [[[self alloc] initWithString:badgeString
+                         withStringColor:stringColor
+                          withInsetColor:insetColor
+                          withBadgeFrame:badgeFrameYesNo
+                     withBadgeFrameColor:frameColor
+                               withScale:scale
+                             withShining:shining] autorelease];
 }
 
 
@@ -232,8 +240,12 @@
 			sizeOfFont += sizeOfFont*0.20;
 		}
 		UIFont *textFont = [UIFont boldSystemFontOfSize:sizeOfFont];
-		CGSize textSize = [self.badgeText sizeWithFont:textFont];
-		[self.badgeText drawAtPoint:CGPointMake((rect.size.width/2-textSize.width/2), (rect.size.height/2-textSize.height/2)) withFont:textFont];
+        NSDictionary *fontAttributes = [NSDictionary dictionaryWithObjectsAndKeys:textFont, NSFontAttributeName, self.badgeTextColor, NSForegroundColorAttributeName, nil];
+        CGSize textSize = [self.badgeText sizeWithAttributes:fontAttributes];
+
+        [self.badgeText drawAtPoint:CGPointMake((rect.size.width/2-ceil(textSize.width)/2), (rect.size.height/2-ceil(textSize.height)/2))
+                     withAttributes:fontAttributes];
+        
 	}
 	
 }
