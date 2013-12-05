@@ -83,26 +83,35 @@
 // Use this method if you want to change the badge text after the first rendering 
 - (void) autoBadgeSizeWithString:(NSString *)badgeString
 {
-	CGSize retValue;
-	CGFloat rectWidth, rectHeight;
-    NSDictionary *fontAttributes = [NSDictionary dictionaryWithObjectsAndKeys:[UIFont boldSystemFontOfSize:12], NSFontAttributeName, nil];
-    CGSize stringSize = [badgeString sizeWithAttributes:fontAttributes];
+    CGSize retValue;
+    CGFloat rectWidth, rectHeight;
+    CGSize stringSize;
+    if ([NSString instancesRespondToSelector:@selector(sizeWithAttributes:)]) {
+        NSDictionary *fontAttributes = [NSDictionary dictionaryWithObject:[UIFont boldSystemFontOfSize:12.0f]
+                                                                   forKey:NSFontAttributeName];
+        stringSize = [badgeString sizeWithAttributes:fontAttributes];
+        
+    } else {
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 70000
+        stringSize = [badgeString sizeWithFont:[UIFont boldSystemFontOfSize:12]];
+#endif
+    }
     
-	CGFloat flexSpace;
-	if ([badgeString length]>=2) {
-		flexSpace = [badgeString length];
-		rectWidth = 25 + (stringSize.width + flexSpace); rectHeight = 25;
-		retValue = CGSizeMake(rectWidth*badgeScaleFactor, rectHeight*badgeScaleFactor);
-	} else {
-		retValue = CGSizeMake(25*badgeScaleFactor, 25*badgeScaleFactor);
-	}
-	self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, retValue.width, retValue.height);
-	self.badgeText = badgeString;
-	[self setNeedsDisplay];
+    CGFloat flexSpace;
+    if ([badgeString length]>=2) {
+        flexSpace = [badgeString length];
+        rectWidth = 25 + (stringSize.width + flexSpace); rectHeight = 25;
+        retValue = CGSizeMake(rectWidth*badgeScaleFactor, rectHeight*badgeScaleFactor);
+    } else {
+        retValue = CGSizeMake(25*badgeScaleFactor, 25*badgeScaleFactor);
+    }
+    self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, retValue.width, retValue.height);
+    self.badgeText = badgeString;
+    [self setNeedsDisplay];
 }
 
 
-// Creates a Badge with a given Text 
+// Creates a Badge with a given Text
 + (CustomBadge*) customBadgeWithString:(NSString *)badgeString
 {
 	return [[[self alloc] initWithString:badgeString withScale:1.0 withShining:YES] autorelease];
@@ -221,7 +230,6 @@
 
 
 - (void)drawRect:(CGRect)rect {
-	
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	[self drawRoundedRectWithContext:context withRect:rect];
 	
@@ -240,12 +248,20 @@
 			sizeOfFont += sizeOfFont*0.20;
 		}
 		UIFont *textFont = [UIFont boldSystemFontOfSize:sizeOfFont];
-        NSDictionary *fontAttributes = [NSDictionary dictionaryWithObjectsAndKeys:textFont, NSFontAttributeName, self.badgeTextColor, NSForegroundColorAttributeName, nil];
-        CGSize textSize = [self.badgeText sizeWithAttributes:fontAttributes];
+        CGSize textSize;
+        if ([NSString instancesRespondToSelector:@selector(sizeWithAttributes:)]) {
+            NSDictionary *fontAttributes = [NSDictionary dictionaryWithObjectsAndKeys:textFont, NSFontAttributeName, self.badgeTextColor, NSForegroundColorAttributeName, nil];
+            textSize = [self.badgeText sizeWithAttributes:fontAttributes];
+            [self.badgeText drawAtPoint:CGPointMake((rect.size.width/2-ceil(textSize.width)/2), (rect.size.height/2-ceil(textSize.height)/2))
+                         withAttributes:fontAttributes];
+        } else {
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 70000
+            textSize = [self.badgeText sizeWithFont:textFont];
+            [self.badgeText drawAtPoint:CGPointMake((rect.size.width/2-ceil(textSize.width)/2), (rect.size.height/2-ceil(textSize.height)/2))
+                         withFont:textFont];
+#endif
 
-        [self.badgeText drawAtPoint:CGPointMake((rect.size.width/2-ceil(textSize.width)/2), (rect.size.height/2-ceil(textSize.height)/2))
-                     withAttributes:fontAttributes];
-        
+        }
 	}
 	
 }
